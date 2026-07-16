@@ -1,0 +1,27 @@
+{
+  "name": "kanban-portofolio",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "pnpm --filter frontend run build -- --output-path ../backend/public && pnpm --filter backend run build",
+    "start": "pnpm --filter backend run start:prod",
+    "dev": "concurrently \"pnpm --filter backend run start:dev\" \"pnpm --filter frontend run start\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@parcel/watcher",
+      "esbuild",
+      "lmdb",
+      "msgpackr-extract",
+      "unrs-resolver"
+    ]
+  }
+}
