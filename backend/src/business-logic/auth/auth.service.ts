@@ -2,8 +2,9 @@ import { Injectable, UnauthorizedException, ConflictException, Logger } from '@n
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
-import { UserEntity } from './persistence/user/user.entity';
+import { UserEntity } from '../../persistence/user/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AuthenticationDTO } from '../../shared/dto/auth.dto';
 
 @Injectable()
 export class AuthService {
@@ -13,43 +14,48 @@ export class AuthService {
     private jwtService: JwtService
   ) {}
 
-  async register(username: string, pass: string) {
-    const existingUser = await this.userRepo.findOneBy({ username });
+  async register(data: AuthenticationDTO) {
+    const existingUser = await this.userRepo.findOneBy({ username: data.username });
     if (existingUser) {
       throw new ConflictException('This username is already taken');
     }
 
     const saltOrRounds = 2; // Keeping it simple
-    const hashedPassword = await bcrypt.hash(pass, saltOrRounds);
+    const hashedPassword = await bcrypt.hash(data.password, saltOrRounds);
 
     const userEntity = this.userRepo.create({
-      username,
+      username: data.username,
       password: hashedPassword
     });
 
-    const newUser = await userEntity.save();
-    return this.generateToken(newUser);
+    const newUser = await this.userRepo.insert(userEntity);
+    userEntity.id = newUser.identifiers[0]?.id;
+    return this.getAccessToken(userEntity);
   }
 
-  async login(username: string, pass: string) {
-    const user = await this.userRepo.findOneBy({ username });
+  async login(data: AuthenticationDTO) {
+    const user = await this.userRepo.findOne({ where: { username: data.username }, select: {
+      username: true,
+        id: true,
+        password: true
+      } });
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await bcrypt.compare(pass, user.password);
+    const isPasswordValid = await bcrypt.compare(data.password, user.password);
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    return this.generateToken(user);
+    return this.getAccessToken(user);
   }
 
-  private async generateToken(user: UserEntity) {
+  private async getAccessToken(user: UserEntity) {
     const payload = { sub: user.id, username: user.username };
 
     return {
-      access_token: await this.jwtService.signAsync(payload, { expiresIn: '10y' }),
+      token: await this.jwtService.signAsync(payload, { expiresIn: '10y' }),
     };
   }
 }

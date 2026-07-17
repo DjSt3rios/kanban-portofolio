@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from './user.entity';
 import { Repository } from 'typeorm';
@@ -10,6 +10,8 @@ export class UserService extends BasePersistenceService{
     super(userRepo);
   }
 
-
+  create(data: any): Promise<any> {
+    throw new BadRequestException('Users cannot be created from this function, call auth/register');
+  }
 
 }

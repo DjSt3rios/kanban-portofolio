@@ -11,7 +11,7 @@ export class BasePersistenceService {
     if (!id || typeof id !== 'number') {
       throw new BadRequestException('Invalid ID');
     }
-    return this.repo.findBy({ id }).catch((err) => {
+    return this.repo.findOneBy({ id }).catch((err) => {
       this.logger.error(err);
       throw new Error('An error has occurred, please try again later');
     });
@@ -21,7 +21,9 @@ export class BasePersistenceService {
     if (!data || typeof data !== 'object' || !Object.keys(data).length) {
       throw new BadRequestException('Invalid data');
     }
-    return this.repo.insert(data).catch((err) => {
+    return this.repo.insert(data).then((res) => {
+      return this.repo.findOneBy({ id: res?.identifiers[0]?.id });
+    }).catch((err) => {
       this.logger.error(err);
       throw new Error('An error has occurred, please try again later');
     });
