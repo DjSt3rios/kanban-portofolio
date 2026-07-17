@@ -15,14 +15,5 @@
   "devDependencies": {
     "concurrently": "^10.0.3",
     "husky": "^9.1.7"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@parcel/watcher",
-      "esbuild",
-      "lmdb",
-      "msgpackr-extract",
-      "unrs-resolver"
-    ]
   }
 }
