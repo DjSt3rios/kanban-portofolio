@@ -1,17 +1,18 @@
-import { Injectable, UnauthorizedException, ConflictException, Logger } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
-import { UserEntity } from '../../persistence/user/user.entity';
+import { UserEntity } from '../persistence/user/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { AuthenticationDTO } from '../../shared/dto/auth.dto';
+import { AuthenticationDTO } from '../shared/dto/auth.dto';
 
 @Injectable()
 export class AuthService {
   logger = new Logger('AuthService');
+
   constructor(
     @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>,
-    private jwtService: JwtService
+    private jwtService: JwtService,
   ) {}
 
   async register(data: AuthenticationDTO) {
@@ -25,7 +26,7 @@ export class AuthService {
 
     const userEntity = this.userRepo.create({
       username: data.username,
-      password: hashedPassword
+      password: hashedPassword,
     });
 
     const newUser = await this.userRepo.insert(userEntity);
@@ -34,11 +35,14 @@ export class AuthService {
   }
 
   async login(data: AuthenticationDTO) {
-    const user = await this.userRepo.findOne({ where: { username: data.username }, select: {
-      username: true,
+    const user = await this.userRepo.findOne({
+      where: { username: data.username },
+      select: {
+        username: true,
         id: true,
-        password: true
-      } });
+        password: true,
+      },
+    });
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
