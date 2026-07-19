@@ -7,7 +7,8 @@ import { ControllersModule } from './controllers/controllers.module';
 import { UserModule } from './persistence/user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { AlsModule } from './als/als.module';
-import { BoardModule } from './persistence/board/board.module';
+import { ColumnModule } from './persistence/column/column.module';
+import { CardModule } from './persistence/card/card.module';
 
 @Module({
   imports: [
@@ -25,7 +26,8 @@ import { BoardModule } from './persistence/board/board.module';
     AuthModule,
     AlsModule,
     UserModule,
-    BoardModule,
+    ColumnModule,
+    CardModule,
   ],
   controllers: [],
   providers: [],
