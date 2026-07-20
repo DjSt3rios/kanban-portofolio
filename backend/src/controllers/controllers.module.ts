@@ -7,9 +7,11 @@ import { ColumnController } from './column/column.controller';
 import { CardController } from './card/card.controller';
 import { ColumnModule } from '../persistence/column/column.module';
 import { CardModule } from '../persistence/card/card.module';
+import { BoardGatewayModule } from './board/board-gateway.module';
 
 @Module({
-  imports: [UserModule, AuthModule, ColumnModule, CardModule],
+  imports: [UserModule, AuthModule, ColumnModule, CardModule, BoardGatewayModule],
   controllers: [UserController, AuthController, ColumnController, CardController],
+  providers: [],
 })
 export class ControllersModule {}

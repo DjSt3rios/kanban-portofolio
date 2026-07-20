@@ -4,6 +4,7 @@ import type { IUser } from '../../shared/dto/user.dto';
 import { CreateUserDTO, UpdateUserDTO, UserDTO } from '../../shared/dto/user.dto';
 import { getBaseController } from '../base/base.controller';
 import { User } from '../../user.decorator';
+import { ApiResponse } from '@nestjs/swagger';
 
 @Controller('api/user')
 export class UserController extends getBaseController({
@@ -11,10 +12,11 @@ export class UserController extends getBaseController({
   create: CreateUserDTO,
   response: UserDTO,
 }) {
-  constructor(private userService: UserService) {
+  constructor(userService: UserService) {
     super(userService);
   }
 
+  @ApiResponse({ type: UserDTO, status: 200 })
   @Get('me')
   getUserInfo(@User() user: IUser) {
     return user;
