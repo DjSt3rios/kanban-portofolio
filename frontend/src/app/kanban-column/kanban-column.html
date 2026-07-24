@@ -1,12 +1,19 @@
-<p-orderlist [value]="cards" dataKey="id" [responsive]="true" breakpoint="575px" scrollHeight="20rem">
-  <ng-template let-option let-selected="selected" #item>
-    <div class="flex flex-wrap p-1 items-center gap-4 w-full">
-      <img class="w-12 shrink-0 rounded-sm" src="https://primefaces.org/cdn/primeng/images/demo/product/{{ option.image }}" [alt]="option.name" />
-      <div class="flex-1 flex flex-col">
-        <span class="font-medium text-sm">{{ option.name }}</span>
-        <span [class]="selected ? 'text-sm text-inherit' : 'text-sm text-surface-500 dark:text-surface-400'">{{ option.category }}</span>
+<div class="column">
+  <h3>{{ column.title }}</h3>
+
+  <div
+    class="card-list"
+    cdkDropList
+    [cdkDropListData]="column.cards"
+    (cdkDropListDropped)="onCardDrop($event, column.id)">
+
+    @for (card of column.cards; track card.id) {
+      <div class="card" cdkDrag>
+        <h4>{{ card.title }}</h4>
+        <p>{{ card.description }}</p>
       </div>
-      <span class="font-bold sm:ml-8">{{ '$' + option.price }}</span>
-    </div>
-  </ng-template>
-</p-orderlist>
+    }
+  </div>
+  
+
+</div>

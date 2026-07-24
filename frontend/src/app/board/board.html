@@ -1,0 +1,5 @@
+<div class="kanban-container" cdkDropListGroup>
+  @for (column of broadcastSocket.columns(); track column.id) {
+    <app-kanban-column [column]="column" (reloadBoard)="this.loadData()"></app-kanban-column>
+  }
+</div>

@@ -1,0 +1,17 @@
+<div class="max-container align-content-center flex justify-content-center">
+  <div class="flex flex-column main-panel align-self-center">
+    <p-tabs [value]="route.url">
+      <p-tablist [ngStyle]="{
+borderRadius: 'var(--p-card-border-radius) var(--p-card-border-radius) 0 0'
+}">
+        @for (tab of tabs; track tab.route) {
+          <p-tab [value]="tab.route" class="flex items-center gap-2 text-inherit" [routerLink]="tab.route">
+            <span>{{ tab.label }}</span>
+          </p-tab>
+        }
+      </p-tablist>
+    </p-tabs>
+    <router-outlet></router-outlet>
+  </div>
+</div>
+

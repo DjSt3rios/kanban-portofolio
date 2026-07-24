@@ -1,0 +1,34 @@
+<p-card class="align-self-center" [ngStyle]="{
+borderRadius: '0 0 var(--p-card-border-radius) var(--p-card-border-radius)'
+}">
+  <form class="flex flex-column gap-4">
+    <div class="flex gap-3">
+      <label for="username">Username:</label>
+      <input pInputText id="username" [(ngModel)]="username" [ngModelOptions]="{standalone: true}" autocomplete="username" />
+    </div>
+    <div class="flex gap-3">
+      <label for="password">Password:</label>
+      <input pInputPassword id="password" [(ngModel)]="password" [ngModelOptions]="{standalone: true}" autocomplete="current-password" />
+    </div>
+    <ul class="flex flex-column gap-2 list-none ms-1 my-1 p-0">
+      @for (req of requirements; track req.id) {
+        <li class="flex items-center gap-2 text-sm transition-all duration-300">
+          <i [class]="'pi pi-check-circle align-self-center transition-all duration-300 ease-out ' + (req.test(password) ? 'text-green-500 scale-110 opacity-100' : 'text-surface-400 scale-90 opacity-70')"></i>
+          <span
+            [class]="'transition-all duration-300 ease-out ' + (req.test(password) ? 'text-green-700 dark:text-green-400 decoration-2 decoration-green-500/70' : 'text-surface-400 dark:text-surface-300 dark:opacity-70')"
+          >{{ req.label }}</span>
+        </li>
+      }
+    </ul>
+
+    <button pButton type="button" (click)="register()" [disabled]="isRegistering">
+      Register
+      @if (isRegistering) {
+        <p-progress-spinner ariaLabel="loading" strokeWidth="12" fill="transparent" [style]="{ width: '1.5rem', height: '1.5rem' }" />
+      }
+
+    </button>
+  </form>
+</p-card>
+
+

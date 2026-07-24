@@ -1,0 +1,23 @@
+<p-card class="align-self-center" [ngStyle]="{
+borderRadius: '0 0 var(--p-card-border-radius) var(--p-card-border-radius)'
+}">
+  <form class="flex flex-column gap-4">
+    <div class="flex gap-3">
+      <label for="username">Username:</label>
+      <input pInputText id="username" [(ngModel)]="username" [ngModelOptions]="{standalone: true}" autocomplete="username" />
+    </div>
+    <div class="flex gap-3">
+      <label for="password">Password:</label>
+      <input pInputPassword id="password" [(ngModel)]="password" [ngModelOptions]="{standalone: true}" autocomplete="current-password" />
+    </div>
+
+    <button pButton type="button" (click)="login()" [disabled]="isLoggingIn">
+      Login
+      @if (isLoggingIn) {
+        <p-progress-spinner ariaLabel="loading" strokeWidth="12" fill="transparent" [style]="{ width: '1.5rem', height: '1.5rem' }" />
+      }
+
+    </button>
+  </form>
+</p-card>
+
