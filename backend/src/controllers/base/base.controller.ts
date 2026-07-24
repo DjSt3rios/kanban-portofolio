@@ -14,6 +14,12 @@ export function getBaseController(dtos: IDTOs) {
   class BaseController {
     constructor(public service: IBaseService) {}
 
+    @ApiOkResponse({ type: responseDTO, isArray: true })
+    @Get('all')
+    getAll() {
+      return this.service.getAll();
+    }
+
     @ApiParam({
       name: 'id',
       description: 'Object ID',

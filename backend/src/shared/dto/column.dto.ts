@@ -1,10 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNumber, IsString } from 'class-validator';
+import { CardEntity } from '../../persistence/card/card.entity';
+import { CardDTO } from './card.dto';
 
 export interface IColumn {
   id: number;
   title: string;
   position: number;
+  cards: CardEntity[];
 }
 
 export class ColumnDTO {
@@ -16,6 +19,9 @@ export class ColumnDTO {
 
   @ApiProperty()
   position: number;
+
+  @ApiProperty({ type: CardDTO, isArray: true })
+  cards: CardDTO[];
 }
 
 export class UpdateColumnDTO {

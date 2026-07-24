@@ -17,11 +17,7 @@ export class BoardGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(`Client disconnected: ${client.id}`);
   }
 
-  broadcastCardMoved(payload: ICard) {
-    this.server.emit('card_moved', payload);
-  }
-
-  broadcastCardDeleted(card: ICard) {
+  broadcastCardDeleted(card: Partial<ICard>) {
     this.server.emit('card_deleted', card);
   }
 
@@ -29,7 +25,7 @@ export class BoardGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.emit('card_created', payload);
   }
 
-  broadcastCardUpdated(payload: ICard) {
+  broadcastCardUpdated(payload: Partial<ICard>) {
     this.server.emit('card_updated', payload);
   }
 }

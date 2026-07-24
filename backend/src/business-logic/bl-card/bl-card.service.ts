@@ -18,6 +18,10 @@ export class BlCardService implements IBaseService {
     private boardGateway: BoardGateway,
   ) {}
 
+  getAll(): Promise<any[]> {
+    return this.cardService.getAll();
+  }
+
   create(data: any): Promise<any> {
     return this.createCard(data);
   }
@@ -52,6 +56,7 @@ export class BlCardService implements IBaseService {
       this.logger.error('Failed to create card with the following data:', card);
       throw new Error('Failed to create card');
     }
+    this.boardGateway.broadcastCardCreated(createdCard);
     return createdCard;
   }
 
@@ -114,7 +119,11 @@ export class BlCardService implements IBaseService {
       card.position = position;
       console.log('Saving card', card);
       await manager.update(CardEntity, { id: cardId }, card);
-      this.boardGateway.broadcastCardUpdated(card);
+      this.boardGateway.broadcastCardUpdated({
+        id: card.id,
+        columnId: card.columnId,
+        position: card.position,
+      });
       return await manager.findOneBy(CardEntity, { id: cardId });
     });
   }
@@ -143,7 +152,11 @@ export class BlCardService implements IBaseService {
         .andWhere('position > :deletedPosition', { deletedPosition })
         .execute();
 
-      this.boardGateway.broadcastCardDeleted(card);
+      this.boardGateway.broadcastCardDeleted({
+        id: card.id,
+        position: card.position,
+        columnId: card.columnId,
+      });
       return true;
     });
     if (!success) {

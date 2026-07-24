@@ -20,7 +20,7 @@ export class CardEntity implements ICard {
   @Column({ type: 'int', name: 'position' })
   position: number;
 
-  @OneToOne(() => ColumnEntity, { eager: true })
+  @OneToOne(() => ColumnEntity)
   @JoinColumn({ name: 'column_id' })
   column: IColumn;
 }

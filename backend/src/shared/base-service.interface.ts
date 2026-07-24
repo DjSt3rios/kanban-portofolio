@@ -10,4 +10,6 @@ export interface IBaseService {
   update(id: number, data: Record<string, any>): Promise<any>;
 
   delete(id: number): any;
+
+  getAll(): Promise<any[]>;
 }

@@ -8,6 +8,10 @@ export class BasePersistenceService implements IBaseService {
 
   constructor(public repo: Repository<any>) {}
 
+  getAll(): Promise<any[]> {
+    return this.repo.find().catch(() => []);
+  }
+
   read(id: number): Promise<any> {
     if (!id || typeof id !== 'number') {
       throw new BadRequestException('Invalid ID');
