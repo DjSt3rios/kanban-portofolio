@@ -1,0 +1,7 @@
+<div class="flex flex-column gap-4">
+  <textarea class="w-full no-resize" rows="5" pTextarea [(ngModel)]="card.description" [draggable]="false"></textarea>
+  <div class="align-self-center">
+    <button class="w-8rem" pButton severity="primary" (click)="saveCard()">Save</button>
+  </div>
+</div>
+

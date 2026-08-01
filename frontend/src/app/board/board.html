@@ -1,5 +1,34 @@
-<div class="kanban-container" cdkDropListGroup>
-  @for (column of broadcastSocket.columns(); track column.id) {
-    <app-kanban-column [column]="column" (reloadBoard)="this.loadData()"></app-kanban-column>
-  }
+<div class="main-container">
+  <p-megamenu [model]="items" [style]="{ 'border-radius': '3rem', display: 'flex', padding: '1rem' }" class="p-3 bg-surface-0 dark:bg-surface-900">
+    <ng-template #item let-item>
+      @if (item.root) {
+        <a pRipple class="flex items-center cursor-pointer px-3 py-2 overflow-hidden relative font-semibold uppercase" style="border-radius: 2rem">
+          <i [ngClass]="item.icon"></i>
+          <span class="ml-2">{{ item.label }}</span>
+        </a>
+      } @else if (!item.image) {
+        <a class="flex items-center p-3 cursor-pointer mb-2 gap-2">
+                        <span class="inline-flex items-center justify-center rounded-full bg-primary text-primary-contrast w-12 h-12">
+                            <i [ngClass]="item.icon"></i>
+                        </span>
+          <span class="inline-flex flex-col gap-1">
+                            <span class="font-medium text-surface-900 dark:text-surface-0">{{ item.label }}</span>
+                            <span class="whitespace-nowrap text-sm">{{ item.subtext }}</span>
+                        </span>
+        </a>
+      } @else {
+        <div class="flex flex-col items-start gap-4">
+          <img [src]="item.image" alt="megamenu-demo" class="w-full" />
+          <span class="text-sm">{{ item.subtext }}</span>
+          <button type="button" pButton [outlined]="true">{{ item.label }}</button>
+        </div>
+      }
+    </ng-template>
+  </p-megamenu>
+  <div class="kanban-container mt-3" cdkDropListGroup>
+    @for (column of broadcastSocket.columns(); track column.id) {
+      <app-kanban-column [column]="column" (reloadBoard)="this.loadData()"></app-kanban-column>
+    }
+  </div>
+
 </div>

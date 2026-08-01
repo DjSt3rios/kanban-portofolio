@@ -1,19 +1,35 @@
-<div class="column">
-  <h3>{{ column.title }}</h3>
-
-  <div
-    class="card-list"
-    cdkDropList
-    [cdkDropListData]="column.cards"
-    (cdkDropListDropped)="onCardDrop($event, column.id)">
-
-    @for (card of column.cards; track card.id) {
-      <div class="card" cdkDrag>
-        <h4>{{ card.title }}</h4>
-        <p>{{ card.description }}</p>
-      </div>
-    }
+<div class="flex flex-column gap-2">
+  <div class="flex gap-2 column-header">
+    <i class="pi pi-circle-fill align-self-center"></i>
+    <p-inplace [pt]="{ display: 'w-full' }" (onDeactivate)="onClosed()">
+      <ng-template #display>
+        <div class="column-title">{{ column.title }}</div>
+      </ng-template>
+      <ng-template #content let-closeCallback="closeCallback">
+        <input pInputText [(ngModel)]="title" placeholder="Enter name" class="flex-1 m-2"
+               [pAutoFocus]="true"
+               [style]="{ 'font-size': '1rem', maxWidth: '75%', margin: '0 !important' }"
+               (focusout)="closeCallback($event)"
+               (keyup)="onKeyUp($event, closeCallback)" />
+      </ng-template>
+    </p-inplace>
   </div>
-  
+
+
+  <div class="column">
+    <div
+      class="card-list"
+      cdkDropList
+      [cdkDropListData]="column.cards"
+      (cdkDropListDropped)="onCardDrop($event, column.id)">
+
+      @for (card of column.cards; track card.id) {
+        <app-kanban-card [card]="card" (destroyCard)="cardCreationFailed()"></app-kanban-card>
+      }
+
+    </div>
+    <button pButton class="new-card mb-3 mt-3 align-self-center" (click)="newCard()">Add a new card</button>
+  </div>
 
 </div>
+

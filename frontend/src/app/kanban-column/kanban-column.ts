@@ -1,25 +1,44 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { ColumnDto } from '../../services/api-client/models/column-dto';
 import { CardDto } from '../../services/api-client/models/card-dto';
-import { CdkDrag, CdkDragDrop, CdkDropList, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
-import { cardControllerUpdate } from '../../services/api-client/functions';
+import { CdkDragDrop, CdkDropList, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import { cardControllerUpdate, columnControllerUpdate } from '../../services/api-client/functions';
 import { HttpClient } from '@angular/common/http';
+import { KanbanCard } from '../kanban-card/kanban-card';
+import { InputText } from 'primeng/inputtext';
+import { Inplace } from 'primeng/inplace';
+import { FormsModule } from '@angular/forms';
+import { AutoFocus } from 'primeng/autofocus';
+import { Api } from '../../services/api-client/api';
+import { MessageService } from 'primeng/api';
+import { ButtonDirective } from 'primeng/button';
 
 @Component({
   selector: 'app-kanban-column',
   imports: [
     CdkDropList,
-    CdkDrag,
+    KanbanCard,
+    InputText,
+    Inplace,
+    FormsModule,
+    AutoFocus,
+    ButtonDirective,
   ],
   templateUrl: './kanban-column.html',
   styleUrl: './kanban-column.scss',
 })
-export class KanbanColumn {
+export class KanbanColumn implements OnChanges {
   @Input() column!: ColumnDto;
-  @Input() cards!: CardDto[];
   @Output() reloadBoard = new EventEmitter<void>();
+  title: string;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private api: Api, private cdr: ChangeDetectorRef, private messageService: MessageService) {
+  }
+
+  ngOnChanges(changes: SimpleChanges<any>) {
+    if (changes.column) {
+      this.title = this.column?.title;
+    }
   }
 
   onCardDrop(event: CdkDragDrop<CardDto[]>, targetColumnId: number) {
@@ -60,5 +79,79 @@ export class KanbanColumn {
         this.reloadBoard.emit();
       },
     });
+  }
+
+  onClosed() {
+    if (this.title === this.column?.title) {
+      return;
+    }
+    this.column.title = this.title;
+    this.api.invoke(columnControllerUpdate, {
+      id: this.column.id,
+      body: {
+        ...this.column,
+        title: this.title,
+      },
+    }).then((res) => {
+      if (!res?.title) {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Failed to change column title, please try again later',
+          key: 'global',
+          closable: false,
+        });
+        return;
+      }
+      this.column.title = this.title;
+
+      this.messageService.add({
+        severity: 'success',
+        summary: 'Success',
+        detail: 'Column title changed!',
+        key: 'global',
+        closable: false,
+      });
+      this.cdr.markForCheck();
+    }).catch((err) => {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Error',
+        detail: 'Failed to change column title, please try again later',
+        key: 'global',
+        closable: false,
+      });
+      this.reloadBoard.emit();
+      console.error(err);
+    });
+
+  }
+
+  protected onKeyUp(event: KeyboardEvent, closeCallback: Function) {
+    if (event.key !== 'Enter') {
+      return;
+    }
+    closeCallback();
+  }
+
+  protected newCard() {
+    if (this.column?.cards?.findIndex((card) => card.title === '') !== -1) {
+      return;
+    }
+    this.column.cards.push({
+      title: '',
+      position: 999,
+      description: '',
+      columnId: this.column.id,
+      id: undefined,
+    });
+  }
+
+  protected cardCreationFailed() {
+    const cardIndex = this.column.cards.findIndex((card) => !card.id);
+    if (cardIndex === -1) {
+      return;
+    }
+    this.column.cards.splice(cardIndex, 1);
   }
 }

@@ -12,6 +12,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { MessageService } from 'primeng/api';
 import { ProgressSpinner } from 'primeng/progressspinner';
 import { NgStyle } from '@angular/common';
+import { Auth } from '../../../services/auth';
 
 @Component({
   selector: 'app-login',
@@ -30,7 +31,7 @@ import { NgStyle } from '@angular/common';
 })
 export class Login {
 
-  constructor(private api: Api, private router: Router, private cdr: ChangeDetectorRef, private messageService: MessageService) {
+  constructor(private api: Api, private router: Router, private cdr: ChangeDetectorRef, private messageService: MessageService, private auth: Auth) {
   }
 
   isLoggingIn = false;
@@ -52,5 +53,6 @@ export class Login {
     this.messageService.add({ severity: 'success', summary: 'Success', detail: 'Logged in successfully', life: 5000, key: 'global' });
     localStorage.setItem('token', result.token);
     this.router.navigate(['/']);
+    this.auth.isLoggedIn.set(true);
   }
 }

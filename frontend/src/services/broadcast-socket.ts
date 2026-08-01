@@ -1,7 +1,8 @@
-import { Service, signal } from '@angular/core';
+import { effect, inject, Service, signal } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
 import { CardDto } from './api-client/models/card-dto';
 import { ColumnDto } from './api-client/models/column-dto';
+import { Auth } from './auth';
 
 @Service()
 export class BroadcastSocket {
@@ -11,7 +12,21 @@ export class BroadcastSocket {
   readonly isLoading = signal<boolean>(true);
 
   constructor() {
-    this.socket = io('/', { path: '/socket.io' });
+    const authService = inject(Auth);
+    effect(() => {
+      const isLoggedIn = authService.isLoggedIn;
+      if (isLoggedIn()) {
+        this.startConnection();
+      }
+    });
+  }
+
+  startConnection() {
+    this.socket = io('/', {
+      path: '/socket.io', auth: {
+        token: localStorage.getItem('token'),
+      },
+    });
     this.setupListeners();
   }
 
