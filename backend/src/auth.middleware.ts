@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, NestMiddleware, UnauthorizedException } from '@nestjs/common';
+import { HttpStatus, Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
@@ -8,13 +8,17 @@ import { AsyncLocalStorage } from 'async_hooks';
 
 @Injectable()
 export class AuthMiddleware implements NestMiddleware {
-  constructor(private jwtService: JwtService, @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>, private als: AsyncLocalStorage<any>) {
-  }
+  constructor(
+    private jwtService: JwtService,
+    @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>,
+    private als: AsyncLocalStorage<any>,
+  ) {}
+
   async use(req: Request, res: Response, next: () => void) {
     if (!req.headers.authorization) {
       res.status(HttpStatus.UNAUTHORIZED).json({
         isError: true,
-        message: 'Unauthorized'
+        message: 'Unauthorized',
       });
       return;
     }
@@ -23,22 +27,27 @@ export class AuthMiddleware implements NestMiddleware {
     if (!payload) {
       res.status(HttpStatus.UNAUTHORIZED).json({
         isError: true,
-        message: 'Unauthorized'
+        message: 'Unauthorized',
       });
       return;
     }
     const user = await this.userRepo.findOneBy({
       id: payload?.sub,
-      username: payload?.username
+      username: payload?.username,
     });
     if (!user) {
       res.status(HttpStatus.UNAUTHORIZED).json({
         isError: true,
-        message: 'Unauthorized'
+        message: 'Unauthorized',
       });
       return;
     }
     req['user'] = user;
-    next();
+    this.als.run(
+      {
+        user,
+      },
+      next,
+    );
   }
 }

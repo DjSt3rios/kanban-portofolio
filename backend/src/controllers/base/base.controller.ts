@@ -1,6 +1,5 @@
 import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiParam } from '@nestjs/swagger';
 import { Body, Delete, Get, Param, ParseIntPipe, Patch, Post, ValidationPipe } from '@nestjs/common';
-import { UpdateUserDTO } from '../../shared/dto/user.dto';
 import { IDTOs } from '../../shared/dtos.interface';
 import { DeleteResponseDTO } from '../../shared/dto/delete-response.dto';
 import { IBaseService } from '../../shared/base-service.interface';
@@ -47,16 +46,17 @@ export function getBaseController(dtos: IDTOs) {
     @ApiBody({
       type: updateDTO,
     })
+    @ApiOkResponse({ type: responseDTO })
     @Patch(':id')
     update(
       @Param('id', ParseIntPipe) id: number,
       @Body(
         new ValidationPipe({
-          expectedType: UpdateUserDTO,
+          expectedType: updateDTO,
           whitelist: true,
         }),
       )
-      body: UpdateUserDTO,
+      body: typeof updateDTO,
     ) {
       return this.service.update(id, body);
     }

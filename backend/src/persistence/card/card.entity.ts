@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { ICard } from '../../shared/dto/card.dto';
 import type { IColumn } from '../../shared/dto/column.dto';
 import { ColumnEntity } from '../column/column.entity';
@@ -20,7 +20,7 @@ export class CardEntity implements ICard {
   @Column({ type: 'int', name: 'position' })
   position: number;
 
-  @OneToOne(() => ColumnEntity)
+  @ManyToOne(() => ColumnEntity)
   @JoinColumn({ name: 'column_id' })
   column: IColumn;
 }

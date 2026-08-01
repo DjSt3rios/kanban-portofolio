@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
 import { CardEntity } from '../../persistence/card/card.entity';
 import { CardDTO } from './card.dto';
 
@@ -31,6 +31,7 @@ export class UpdateColumnDTO {
 
   @ApiProperty()
   @IsString()
+  @MinLength(3)
   title: string;
 
   @ApiProperty()
@@ -41,9 +42,11 @@ export class UpdateColumnDTO {
 export class CreateColumnDTO {
   @ApiProperty()
   @IsString()
+  @MinLength(3)
   title: string;
 
   @ApiProperty()
   @IsNumber()
+  @IsOptional()
   position: number;
 }

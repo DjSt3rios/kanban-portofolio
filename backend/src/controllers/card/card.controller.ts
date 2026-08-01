@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { getBaseController } from '../base/base.controller';
-import { CardService } from '../../persistence/card/card.service';
 import { CardDTO, CreateCardDTO, UpdateCardDTO } from '../../shared/dto/card.dto';
+import { BlCardService } from '../../business-logic/bl-card/bl-card.service';
 
 @Controller('api/card')
 export class CardController extends getBaseController({
@@ -9,7 +9,7 @@ export class CardController extends getBaseController({
   create: CreateCardDTO,
   response: CardDTO,
 }) {
-  constructor(cardService: CardService) {
+  constructor(cardService: BlCardService) {
     super(cardService);
   }
 }

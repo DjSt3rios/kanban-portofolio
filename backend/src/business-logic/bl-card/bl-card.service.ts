@@ -6,6 +6,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CardService } from '../../persistence/card/card.service';
 import { ICard } from '../../shared/dto/card.dto';
 import { BoardGateway } from '../../controllers/board/board.gateway';
+import { AsyncLocalStorage } from 'async_hooks';
+import { IUser } from '../../shared/dto/user.dto';
 
 @Injectable()
 export class BlCardService implements IBaseService {
@@ -16,6 +18,7 @@ export class BlCardService implements IBaseService {
     private cardService: CardService,
     private dataSource: DataSource,
     private boardGateway: BoardGateway,
+    private als: AsyncLocalStorage<any>,
   ) {}
 
   getAll(): Promise<any[]> {
@@ -45,8 +48,7 @@ export class BlCardService implements IBaseService {
         order: { position: 'DESC' },
         select: { position: true },
       });
-      console.log(lastCardInColumn);
-      card.position = lastCardInColumn.position ?? 0;
+      card.position = lastCardInColumn?.position ? lastCardInColumn.position + 1 : 0;
       const cardInsertResult = await manager.insert(CardEntity, card);
       return await manager.findOneBy(CardEntity, {
         id: cardInsertResult.identifiers[0]?.id,
@@ -56,7 +58,8 @@ export class BlCardService implements IBaseService {
       this.logger.error('Failed to create card with the following data:', card);
       throw new Error('Failed to create card');
     }
-    this.boardGateway.broadcastCardCreated(createdCard);
+    const user = this.als.getStore()?.user as IUser;
+    this.boardGateway.broadcastCardCreated(createdCard, user.id);
     return createdCard;
   }
 
@@ -64,7 +67,6 @@ export class BlCardService implements IBaseService {
     return await this.dataSource.transaction(async (manager) => {
       const card = await manager.findOne(CardEntity, {
         where: { id: cardId },
-        lock: { mode: 'pessimistic_write' },
       });
 
       if (!card) {
@@ -119,11 +121,15 @@ export class BlCardService implements IBaseService {
       card.position = position;
       console.log('Saving card', card);
       await manager.update(CardEntity, { id: cardId }, card);
-      this.boardGateway.broadcastCardUpdated({
-        id: card.id,
-        columnId: card.columnId,
-        position: card.position,
-      });
+      const user = this.als.getStore()?.user as IUser;
+      this.boardGateway.broadcastCardUpdated(
+        {
+          id: card.id,
+          columnId: card.columnId,
+          position: card.position,
+        },
+        user.id,
+      );
       return await manager.findOneBy(CardEntity, { id: cardId });
     });
   }
@@ -132,7 +138,6 @@ export class BlCardService implements IBaseService {
     const success = await this.dataSource.transaction(async (manager) => {
       const card = await manager.findOne(CardEntity, {
         where: { id: cardId },
-        lock: { mode: 'pessimistic_write' },
       });
 
       if (!card) {
@@ -152,11 +157,15 @@ export class BlCardService implements IBaseService {
         .andWhere('position > :deletedPosition', { deletedPosition })
         .execute();
 
-      this.boardGateway.broadcastCardDeleted({
-        id: card.id,
-        position: card.position,
-        columnId: card.columnId,
-      });
+      const user = this.als.getStore()?.user as IUser;
+      this.boardGateway.broadcastCardDeleted(
+        {
+          id: card.id,
+          position: card.position,
+          columnId: card.columnId,
+        },
+        user.id,
+      );
       return true;
     });
     if (!success) {

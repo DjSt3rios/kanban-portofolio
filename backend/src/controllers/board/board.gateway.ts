@@ -2,6 +2,11 @@ import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketSe
 import { Server, Socket } from 'socket.io';
 import { Injectable } from '@nestjs/common';
 import { ICard } from '../../shared/dto/card.dto';
+import { JwtService } from '@nestjs/jwt';
+import { IUser } from '../../shared/dto/user.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { UserEntity } from '../../persistence/user/user.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 @WebSocketGateway()
@@ -9,23 +14,59 @@ export class BoardGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
+  clients: Map<string, IUser> = new Map<string, IUser>();
+
+  constructor(
+    private readonly jwtService: JwtService,
+    @InjectRepository(UserEntity) private userRepo: Repository<UserEntity>,
+  ) {}
+
+  async handleConnection(client: Socket) {
+    const token = client.handshake.auth.token;
+    if (!token) {
+      client.disconnect(true);
+      return;
+    }
+    const payload = await this.jwtService.verifyAsync(token);
+    if (!payload) {
+      client.disconnect(true);
+      return;
+    }
+    const user = await this.userRepo.findOneBy({
+      id: payload?.sub,
+      username: payload?.username,
+    });
+    if (!user) {
+      client.disconnect(true);
+      return;
+    }
+    this.clients.set(client.id, user);
   }
 
   handleDisconnect(client: Socket) {
-    console.log(`Client disconnected: ${client.id}`);
+    this.clients.delete(client.id);
   }
 
-  broadcastCardDeleted(card: Partial<ICard>) {
-    this.server.emit('card_deleted', card);
+  broadcastCardDeleted(card: Partial<ICard>, excludeUser: number) {
+    const clientId = this.userIdToClientId(excludeUser);
+    this.server.except(clientId).emit('card_deleted', card);
   }
 
-  broadcastCardCreated(payload: ICard) {
-    this.server.emit('card_created', payload);
+  broadcastCardCreated(payload: ICard, excludeUser: number) {
+    const clientId = this.userIdToClientId(excludeUser);
+    this.server.except(clientId).emit('card_created', payload);
   }
 
-  broadcastCardUpdated(payload: Partial<ICard>) {
-    this.server.emit('card_updated', payload);
+  broadcastCardUpdated(payload: Partial<ICard>, excludeUser: number) {
+    const clientId = this.userIdToClientId(excludeUser);
+    this.server.except(clientId).emit('card_updated', payload);
+  }
+
+  userIdToClientId(userId: number) {
+    for (const [clientId, user] of this.clients.entries()) {
+      if (user.id === userId) {
+        return clientId;
+      }
+    }
   }
 }

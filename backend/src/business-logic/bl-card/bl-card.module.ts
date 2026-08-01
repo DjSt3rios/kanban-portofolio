@@ -4,9 +4,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CardEntity } from '../../persistence/card/card.entity';
 import { CardModule } from '../../persistence/card/card.module';
 import { BoardGatewayModule } from '../../controllers/board/board-gateway.module';
+import { AlsModule } from '../../als/als.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([CardEntity]), CardModule, BoardGatewayModule],
+  imports: [TypeOrmModule.forFeature([CardEntity]), CardModule, BoardGatewayModule, AlsModule],
   providers: [BlCardService],
   exports: [BlCardService],
 })
