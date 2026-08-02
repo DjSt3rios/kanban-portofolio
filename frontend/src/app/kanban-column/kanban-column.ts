@@ -71,7 +71,7 @@ export class KanbanColumn implements OnChanges {
         columnId: movedCard.columnId,
         description: movedCard.description,
         id: movedCard.id,
-        position: movedCard.position,
+        position: movedCard.position + 1,
         title: movedCard.title,
       },
     }).subscribe({
