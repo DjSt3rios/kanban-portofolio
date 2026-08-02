@@ -48,7 +48,8 @@ export class BlCardService implements IBaseService {
         order: { position: 'DESC' },
         select: { position: true },
       });
-      card.position = lastCardInColumn?.position ? lastCardInColumn.position + 1 : 0;
+      console.log('last card in column', lastCardInColumn);
+      card.position = (lastCardInColumn?.position || 0) + 1;
       const cardInsertResult = await manager.insert(CardEntity, card);
       return await manager.findOneBy(CardEntity, {
         id: cardInsertResult.identifiers[0]?.id,
@@ -73,10 +74,16 @@ export class BlCardService implements IBaseService {
         throw new Error('Card not found');
       }
 
-      const { columnId, position } = data;
+      const columnId = data.columnId !== undefined ? Number(data.columnId) : card.columnId;
+      const position = data.position !== undefined ? Number(data.position) : card.position;
 
       const oldPosition = card.position;
       const oldColumnId = card.columnId;
+
+      if (oldColumnId === columnId && oldPosition === position) {
+        Object.assign(card, data);
+        return await manager.save(card);
+      }
 
       if (oldColumnId === columnId) {
         if (position < oldPosition) {
@@ -119,8 +126,9 @@ export class BlCardService implements IBaseService {
       Object.assign(card, data);
       card.columnId = columnId;
       card.position = position;
-      console.log('Saving card', card);
-      await manager.update(CardEntity, { id: cardId }, card);
+
+      await manager.save(card);
+
       const user = this.als.getStore()?.user as IUser;
       this.boardGateway.broadcastCardUpdated(
         {
@@ -130,7 +138,7 @@ export class BlCardService implements IBaseService {
         },
         user.id,
       );
-      return await manager.findOneBy(CardEntity, { id: cardId });
+      return card;
     });
   }
 

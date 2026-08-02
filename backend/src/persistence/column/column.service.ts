@@ -31,6 +31,20 @@ export class ColumnService extends BasePersistenceService implements IBaseServic
         position: true,
       },
     });
-    return lastColumn?.position ? lastColumn?.position + 1 : 0;
+    return (lastColumn?.position || 0) + 1;
+  }
+
+  getAll(): Promise<any[]> {
+    return this.columnRepository.find({
+      where: {
+        id: MoreThan(0),
+      },
+      order: {
+        position: 'ASC',
+        cards: {
+          position: 'ASC',
+        },
+      },
+    });
   }
 }
