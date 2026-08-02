@@ -65,81 +65,77 @@ export class BlCardService implements IBaseService {
   }
 
   async updateCard(cardId: number, data: Partial<ICard>): Promise<CardEntity> {
-    return await this.dataSource.transaction(async (manager) => {
-      const card = await manager.findOne(CardEntity, {
-        where: { id: cardId },
-      });
+    return await this.dataSource
+      .transaction(async (manager) => {
+        const card = await manager.findOne(CardEntity, {
+          where: { id: cardId },
+        });
 
-      if (!card) {
-        throw new Error('Card not found');
-      }
+        if (!card) {
+          throw new Error('Card not found');
+        }
 
-      const columnId = data.columnId !== undefined ? Number(data.columnId) : card.columnId;
-      const position = data.position !== undefined ? Number(data.position) : card.position;
+        const columnId = data.columnId !== undefined ? Number(data.columnId) : card.columnId;
+        const position = data.position !== undefined ? Number(data.position) : card.position;
 
-      const oldPosition = card.position;
-      const oldColumnId = card.columnId;
+        const oldPosition = card.position;
+        const oldColumnId = card.columnId;
 
-      if (oldColumnId === columnId && oldPosition === position) {
-        Object.assign(card, data);
-        return await manager.save(card);
-      }
+        if (oldColumnId === columnId && oldPosition === position) {
+          Object.assign(card, data);
+          return await manager.save(card);
+        }
 
-      if (oldColumnId === columnId) {
-        if (position < oldPosition) {
-          await manager
-            .createQueryBuilder()
-            .update(CardEntity)
-            .set({ position: () => 'position + 1' })
-            .where('columnId = :columnId', { columnId: oldColumnId })
-            .andWhere('position >= :newPosition', { newPosition: position })
-            .andWhere('position < :oldPosition', { oldPosition })
-            .execute();
-        } else if (position > oldPosition) {
+        if (oldColumnId === columnId) {
+          if (position < oldPosition) {
+            await manager
+              .createQueryBuilder()
+              .update(CardEntity)
+              .set({ position: () => 'position + 1' })
+              .where('columnId = :columnId', { columnId: oldColumnId })
+              .andWhere('position >= :newPosition', { newPosition: position })
+              .andWhere('position < :oldPosition', { oldPosition })
+              .execute();
+          } else if (position > oldPosition) {
+            await manager
+              .createQueryBuilder()
+              .update(CardEntity)
+              .set({ position: () => 'position - 1' })
+              .where('columnId = :columnId', { columnId: oldColumnId })
+              .andWhere('position <= :newPosition', { newPosition: position })
+              .andWhere('position > :oldPosition', { oldPosition })
+              .execute();
+          }
+        } else {
           await manager
             .createQueryBuilder()
             .update(CardEntity)
             .set({ position: () => 'position - 1' })
-            .where('columnId = :columnId', { columnId: oldColumnId })
-            .andWhere('position <= :newPosition', { newPosition: position })
+            .where('columnId = :oldColumnId', { oldColumnId })
             .andWhere('position > :oldPosition', { oldPosition })
             .execute();
+
+          await manager
+            .createQueryBuilder()
+            .update(CardEntity)
+            .set({ position: () => 'position + 1' })
+            .where('columnId = :newColumnId', { newColumnId: columnId })
+            .andWhere('position >= :newPosition', { newPosition: position })
+            .execute();
         }
-      } else {
-        await manager
-          .createQueryBuilder()
-          .update(CardEntity)
-          .set({ position: () => 'position - 1' })
-          .where('columnId = :oldColumnId', { oldColumnId })
-          .andWhere('position > :oldPosition', { oldPosition })
-          .execute();
 
-        await manager
-          .createQueryBuilder()
-          .update(CardEntity)
-          .set({ position: () => 'position + 1' })
-          .where('columnId = :newColumnId', { newColumnId: columnId })
-          .andWhere('position >= :newPosition', { newPosition: position })
-          .execute();
-      }
+        Object.assign(card, data);
+        card.columnId = columnId;
+        card.position = position;
 
-      Object.assign(card, data);
-      card.columnId = columnId;
-      card.position = position;
-
-      await manager.save(card);
-
-      const user = this.als.getStore()?.user as IUser;
-      this.boardGateway.broadcastCardUpdated(
-        {
-          id: card.id,
-          columnId: card.columnId,
-          position: card.position,
-        },
-        user.id,
-      );
-      return card;
-    });
+        await manager.save(card);
+        return card;
+      })
+      .then((card) => {
+        const user = this.als.getStore()?.user as IUser;
+        this.boardGateway.broadcastCardUpdated(card, user.id);
+        return card;
+      });
   }
 
   async deleteCard(cardId: number) {
