@@ -1,4 +1,4 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export interface ICard {
@@ -37,6 +37,7 @@ export class UpdateCardDTO {
 
   @ApiProperty()
   @IsString()
+  @MinLength(1)
   title: string;
 
   @ApiProperty({ nullable: true })
@@ -56,6 +57,7 @@ export class CreateCardDTO {
 
   @ApiProperty()
   @IsString()
+  @MinLength(1)
   title: string;
 
   @ApiProperty({ nullable: true })

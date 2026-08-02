@@ -9,3 +9,12 @@ label {
 input, textarea {
   font-size: 1.25rem;
 }
+
+
+.p-inputtext.p-invalid {
+  border-color: var(--p-inputtext-invalid-border-color) !important;
+}
+
+.p-iftalabel:has(.p-invalid) label {
+  color: var(--p-iftalabel-invalid-color) !important;
+}

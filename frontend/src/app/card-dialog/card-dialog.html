@@ -1,14 +1,15 @@
-<div class="flex flex-column gap-4">
-  <p-iftalabel>
-    <input pInputText [(ngModel)]="card.title" id="title" [fluid]="true">
-    <label for="title">Title</label>
-  </p-iftalabel>
-  <p-iftalabel>
-    <textarea class="w-full no-resize" rows="5" pTextarea [(ngModel)]="card.description" [draggable]="false" id="description"></textarea>
-    <label for="description">Description</label>
-  </p-iftalabel>
-  <div class="align-self-center">
-    <button class="w-8rem" pButton severity="primary" (click)="saveCard()">Save</button>
+@if (card) {
+  <div class="flex flex-column gap-4">
+    <p-iftalabel>
+      <input pInputText [(ngModel)]="card.title" id="title" [fluid]="true" [invalid]="card?.title?.length < 1">
+      <label for="title">Title</label>
+    </p-iftalabel>
+    <p-iftalabel>
+      <textarea class="w-full no-resize" rows="5" pTextarea [(ngModel)]="card.description" [draggable]="false" id="description"></textarea>
+      <label for="description">Description</label>
+    </p-iftalabel>
+    <div class="align-self-center">
+      <button class="w-8rem" pButton severity="primary" (click)="saveCard()" [disabled]="card?.title?.length < 1">Save</button>
+    </div>
   </div>
-</div>
-
+}
