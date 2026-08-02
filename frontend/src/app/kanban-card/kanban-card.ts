@@ -83,10 +83,10 @@ export class KanbanCard implements OnInit {
       },
       closable: true,
       closeOnEscape: true,
-      header: this.card.title,
+      header: 'Edit card',
       resizable: false,
       width: '600px',
-      height: '300px',
+      height: 'auto',
     });
     ref.onClose.subscribe(() => {
       this.cdr.markForCheck();

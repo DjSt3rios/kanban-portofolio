@@ -8,6 +8,8 @@ import { FormsModule } from '@angular/forms';
 import { Textarea } from 'primeng/textarea';
 import { ButtonDirective } from 'primeng/button';
 import { cardControllerUpdate } from '../../services/api-client/functions';
+import { InputText } from 'primeng/inputtext';
+import { IftaLabel } from 'primeng/iftalabel';
 
 @Component({
   selector: 'app-card-dialog',
@@ -15,6 +17,8 @@ import { cardControllerUpdate } from '../../services/api-client/functions';
     FormsModule,
     Textarea,
     ButtonDirective,
+    InputText,
+    IftaLabel,
   ],
   providers: [DialogConfig],
   templateUrl: './card-dialog.html',
