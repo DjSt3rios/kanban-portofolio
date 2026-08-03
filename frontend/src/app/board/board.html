@@ -25,10 +25,23 @@
       }
     </ng-template>
   </p-megamenu>
-  <div class="kanban-container mt-3" cdkDropListGroup>
-    @for (column of broadcastSocket.columns(); track column.id) {
-      <app-kanban-column [column]="column" (reloadBoard)="this.loadData()"></app-kanban-column>
-    }
+  <div class="kanban-container mt-3">
+    <div class="flex gap-3"
+         cdkDropList
+         cdkDropListOrientation="horizontal"
+         [cdkDropListEnterPredicate]="isColumnDrag"
+         [cdkDropListData]="broadcastSocket.columns()"
+         (cdkDropListDropped)="onColumnDrop($event)">
+
+      @for (column of broadcastSocket.columns(); track column.id) {
+        <app-kanban-column
+          cdkDrag
+          [column]="column"
+          (reloadBoard)="loadData()"
+          [connectedListIds]="connectedColumnIds()">
+        </app-kanban-column>
+      }
+    </div>
   </div>
 
 </div>

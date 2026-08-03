@@ -134,8 +134,7 @@ export class BlColumnService {
         .createQueryBuilder()
         .update(ColumnEntity)
         .set({ position: () => 'position - 1' })
-        .where('id = :columnId', { columnId })
-        .andWhere('position > :deletedPosition', { deletedPosition })
+        .where('position > :deletedPosition', { deletedPosition })
         .execute();
 
       const user = this.als.getStore()?.user as IUser;

@@ -5,11 +5,14 @@ import { InputText } from 'primeng/inputtext';
 import { FormsModule } from '@angular/forms';
 import { AutoFocus } from 'primeng/autofocus';
 import { Api } from '../../services/api-client/api';
-import { cardControllerCreate } from '../../services/api-client/functions';
-import { MessageService } from 'primeng/api';
+import { cardControllerCreate, cardControllerDelete } from '../../services/api-client/functions';
+import { ConfirmationService, MenuItem, MessageService } from 'primeng/api';
 import { NgClass } from '@angular/common';
 import { DialogService } from 'primeng/dynamicdialog';
 import { CardDialog } from '../card-dialog/card-dialog';
+import { ContextMenu } from 'primeng/contextmenu';
+import { ConfirmDialog } from 'primeng/confirmdialog';
+import { BroadcastSocket } from '../../services/broadcast-socket';
 
 @Component({
   selector: 'app-kanban-card',
@@ -19,6 +22,8 @@ import { CardDialog } from '../card-dialog/card-dialog';
     FormsModule,
     AutoFocus,
     NgClass,
+    ContextMenu,
+    ConfirmDialog,
   ],
   providers: [DialogService],
   templateUrl: './kanban-card.html',
@@ -26,12 +31,18 @@ import { CardDialog } from '../card-dialog/card-dialog';
 })
 export class KanbanCard implements OnInit {
   @Input() card: CardDto;
-  @Output() destroyCard = new EventEmitter<void>();
+  @Output() destroyCard = new EventEmitter<number | null>();
 
-  constructor(private api: Api, private cdr: ChangeDetectorRef, private messageService: MessageService, private dialog: DialogService) {
+  items: MenuItem[] | undefined;
+
+  constructor(private api: Api, private cdr: ChangeDetectorRef, private messageService: MessageService, private dialog: DialogService, private confirmService: ConfirmationService, private wsService: BroadcastSocket) {
   }
 
   ngOnInit() {
+    this.items = [
+      { label: 'Edit', command: () => this.openCard() },
+      { label: 'Delete', command: (cmd) => this.deleteCardConfirmation(cmd) },
+    ];
   }
 
   protected createCard() {
@@ -73,10 +84,7 @@ export class KanbanCard implements OnInit {
 
   }
 
-  protected openCard(id: number) {
-    if (!id) {
-      return;
-    }
+  protected openCard() {
     const ref = this.dialog.open(CardDialog, {
       data: {
         card: this.card,
@@ -97,5 +105,55 @@ export class KanbanCard implements OnInit {
     if (event.key === 'Enter') {
       this.createCard();
     }
+  }
+
+  private deleteCardConfirmation(cmd: any) {
+    this.confirmService.confirm({
+      message: 'Do you want to delete this card?',
+      icon: 'pi pi-info-circle',
+      key: 'dialog',
+      header: 'Delete confirmation',
+      rejectButtonProps: {
+        label: 'Cancel',
+        severity: 'secondary',
+        outlined: true,
+      },
+      acceptButtonProps: {
+        label: 'Delete',
+        severity: 'danger',
+      },
+      accept: () => {
+        this.confirmService.close();
+        this.deleteCard();
+      },
+      reject: () => {
+        this.confirmService.close();
+      },
+    });
+  }
+
+  deleteCard() {
+    this.api.invoke(cardControllerDelete, {
+      id: this.card.id,
+    }).then(() => {
+      this.messageService.add({
+        closable: false,
+        key: 'global',
+        severity: 'success',
+        summary: 'Card deleted',
+        detail: 'Your card has been deleted',
+        life: 4000,
+      });
+      this.destroyCard.emit(this.card.id);
+    }).catch(() => {
+      this.messageService.add({
+        closable: false,
+        key: 'global',
+        severity: 'error',
+        summary: 'Something went wrong',
+        detail: 'Failed to delete card, please try again later',
+        life: 4000,
+      });
+    });
   }
 }

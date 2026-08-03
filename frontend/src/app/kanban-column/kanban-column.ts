@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { ColumnDto } from '../../services/api-client/models/column-dto';
 import { CardDto } from '../../services/api-client/models/card-dto';
-import { CdkDragDrop, CdkDropList, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
 import { cardControllerUpdate, columnControllerDelete, columnControllerUpdate } from '../../services/api-client/functions';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { KanbanCard } from '../kanban-card/kanban-card';
@@ -26,6 +26,7 @@ import { BroadcastSocket } from '../../services/broadcast-socket';
     AutoFocus,
     ButtonDirective,
     ConfirmPopup,
+    CdkDragHandle,
   ],
   providers: [ConfirmationService],
   templateUrl: './kanban-column.html',
@@ -33,8 +34,14 @@ import { BroadcastSocket } from '../../services/broadcast-socket';
 })
 export class KanbanColumn implements OnChanges {
   @Input() column!: ColumnDto;
+  @Input() connectedListIds: string[] = [];
   @Output() reloadBoard = new EventEmitter<void>();
   title: string;
+
+
+  isCardDrag = (drag: CdkDrag, drop: CdkDropList): boolean => {
+    return drag.element.nativeElement.tagName.toLowerCase() !== 'app-kanban-column';
+  };
 
   constructor(private http: HttpClient, private api: Api, private cdr: ChangeDetectorRef, private messageService: MessageService, private confirmService: ConfirmationService, private wsService: BroadcastSocket) {
   }
@@ -144,8 +151,8 @@ export class KanbanColumn implements OnChanges {
     });
   }
 
-  protected cardCreationFailed() {
-    const cardIndex = this.column.cards.findIndex((card) => !card.id);
+  protected destroyCard(cardId: number | null) {
+    const cardIndex = this.column.cards.findIndex((card) => card.id === cardId || !card.id);
     if (cardIndex === -1) {
       return;
     }

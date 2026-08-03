@@ -1,10 +1,10 @@
-<div class="card" cdkDrag [ngClass]="{ 'cursor-pointer': !!card?.id}" (click)="openCard(card?.id)">
+<div #cardEl class="card" cdkDrag [ngClass]="{ 'cursor-pointer': !!card?.id}" (click)="openCard()">
   @if (card?.id) {
     <div class="card-title">{{ card?.title }}</div>
     <p>{{ card?.description || 'No description' }}</p>
   } @else {
     <input pInputText [(ngModel)]="card.title" [pAutoFocus]="true" (focusout)="createCard()" (keyup)="onKeyUp($event)">
   }
-
-
 </div>
+<p-contextmenu [target]="cardEl" [model]="items" />
+<p-confirmdialog key="dialog" />
