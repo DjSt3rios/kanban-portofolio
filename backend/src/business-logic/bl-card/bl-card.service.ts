@@ -48,12 +48,8 @@ export class BlCardService implements IBaseService {
         order: { position: 'DESC' },
         select: { position: true },
       });
-      console.log('last card in column', lastCardInColumn);
       card.position = (lastCardInColumn?.position || 0) + 1;
-      const cardInsertResult = await manager.insert(CardEntity, card);
-      return await manager.findOneBy(CardEntity, {
-        id: cardInsertResult.identifiers[0]?.id,
-      });
+      return await manager.save(CardEntity, card);
     });
     if (!createdCard) {
       this.logger.error('Failed to create card with the following data:', card);
@@ -162,14 +158,7 @@ export class BlCardService implements IBaseService {
         .execute();
 
       const user = this.als.getStore()?.user as IUser;
-      this.boardGateway.broadcastCardDeleted(
-        {
-          id: card.id,
-          position: card.position,
-          columnId: card.columnId,
-        },
-        user.id,
-      );
+      this.boardGateway.broadcastCardDeleted(card, user.id);
       return true;
     });
     if (!success) {
