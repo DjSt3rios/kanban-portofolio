@@ -7,6 +7,7 @@ import { IUser } from '../../shared/dto/user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserEntity } from '../../persistence/user/user.entity';
 import { Repository } from 'typeorm';
+import { IColumn } from '../../shared/dto/column.dto';
 
 @Injectable()
 @WebSocketGateway()
@@ -68,5 +69,20 @@ export class BoardGateway implements OnGatewayConnection, OnGatewayDisconnect {
         return clientId;
       }
     }
+  }
+
+  broadcastColumnDeleted(column: Partial<IColumn>, excludeUser: number) {
+    const clientId = this.userIdToClientId(excludeUser);
+    this.server.except(clientId).emit('column_deleted', column);
+  }
+
+  broadcastColumnCreated(payload: IColumn, excludeUser: number) {
+    const clientId = this.userIdToClientId(excludeUser);
+    this.server.except(clientId).emit('column_created', payload);
+  }
+
+  broadcastColumnUpdated(payload: Partial<IColumn>, excludeUser: number) {
+    const clientId = this.userIdToClientId(excludeUser);
+    this.server.except(clientId).emit('column_updated', payload);
   }
 }

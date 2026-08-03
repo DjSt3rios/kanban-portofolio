@@ -97,5 +97,55 @@ export class BroadcastSocket {
         });
       });
     });
+
+    this.socket.on('column_created', (newColumn: ColumnDto) => {
+      this.columns.update(currentCols => {
+        const columnToAdd = { ...newColumn, cards: newColumn.cards || [] };
+        return [...currentCols, columnToAdd].sort((a, b) => a.position - b.position);
+      });
+    });
+
+    this.socket.on('column_deleted', (deletedColumn: ColumnDto) => {
+      this.columns.update(currentCols => {
+        return currentCols
+          .filter(col => col.id !== deletedColumn.id)
+          .map(col => col.position > deletedColumn.position
+            ? { ...col, position: col.position - 1 }
+            : col,
+          );
+      });
+    });
+
+    this.socket.on('column_updated', (updatedColumn: ColumnDto) => {
+      this.columns.update(currentCols => {
+        const oldCol = currentCols.find(c => c.id === updatedColumn.id);
+        if (!oldCol) return currentCols;
+
+        const oldPos = oldCol.position;
+        const newPos = updatedColumn.position;
+
+        let updatedCols = currentCols.map(col => {
+          if (col.id === updatedColumn.id) {
+            return { ...col, ...updatedColumn, cards: col.cards };
+          }
+
+          if (oldPos !== newPos) {
+            if (newPos < oldPos && col.position >= newPos && col.position < oldPos) {
+              return { ...col, position: col.position + 1 };
+            } else if (newPos > oldPos && col.position <= newPos && col.position > oldPos) {
+              return { ...col, position: col.position - 1 };
+            }
+          }
+
+          return col;
+        });
+
+        if (oldPos !== newPos) {
+          updatedCols.sort((a, b) => a.position - b.position);
+        }
+
+        return updatedCols;
+      });
+    });
   }
 }

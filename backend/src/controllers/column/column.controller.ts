@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { getBaseController } from '../base/base.controller';
-import { ColumnService } from '../../persistence/column/column.service';
 import { ColumnDTO, CreateColumnDTO, UpdateColumnDTO } from '../../shared/dto/column.dto';
+import { BlColumnService } from '../../business-logic/bl-column/bl-column.service';
 
 @Controller('api/column')
 export class ColumnController extends getBaseController({
@@ -9,7 +9,7 @@ export class ColumnController extends getBaseController({
   create: CreateColumnDTO,
   response: ColumnDTO,
 }) {
-  constructor(columnService: ColumnService) {
+  constructor(columnService: BlColumnService) {
     super(columnService);
   }
 }

@@ -1,11 +1,11 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { CdkDropListGroup } from '@angular/cdk/drag-drop';
 import { KanbanColumn } from '../kanban-column/kanban-column';
 import { Api } from '../../services/api-client/api';
 import { columnControllerGetAll } from '../../services/api-client/fn/column/column-controller-get-all';
 import { BroadcastSocket } from '../../services/broadcast-socket';
 import { MegaMenu } from 'primeng/megamenu';
-import { MegaMenuItem } from 'primeng/api';
+import { MegaMenuItem, MessageService } from 'primeng/api';
 import { NgClass } from '@angular/common';
 import { Ripple } from 'primeng/ripple';
 import { ButtonDirective } from 'primeng/button';
@@ -30,7 +30,7 @@ export class Board {
   isLoading = true;
   items: MegaMenuItem[] | undefined;
 
-  constructor(private api: Api, public broadcastSocket: BroadcastSocket, private router: Router, private authService: Auth) {
+  constructor(private api: Api, public broadcastSocket: BroadcastSocket, private router: Router, private authService: Auth, private wsService: BroadcastSocket, private messageService: MessageService, private cdr: ChangeDetectorRef) {
   }
 
   ngOnInit() {
@@ -63,6 +63,20 @@ export class Board {
         title: 'New Column',
         position: null,
       },
+    }).then((col) => {
+      this.wsService.columns.update((cols) => {
+        cols.push(col);
+        return cols;
+      });
+      this.cdr.markForCheck();
+    }).catch(() => {
+      this.messageService.add({
+        severity: 'danger',
+        key: 'global',
+        summary: 'An error occurred',
+        detail: 'Failed to add column, please try again later',
+        life: 3000,
+      });
     });
   }
 

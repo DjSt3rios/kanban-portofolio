@@ -8,6 +8,10 @@
 
 .column-title {
   font-size: 1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 9rem;
 }
 
 .column {
@@ -39,6 +43,15 @@
   width: 10rem;
 }
 
-i::before {
-  font-size: 0.6rem !important;
+i.pi-bars::before {
+  font-size: 1.25rem !important;
+  cursor: pointer;
+}
+
+.delete-button {
+  min-width: 2.25rem !important;
+}
+
+.p-inputtext.p-invalid {
+  border-color: var(--p-inputtext-invalid-border-color) !important;
 }

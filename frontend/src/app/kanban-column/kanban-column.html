@@ -1,18 +1,21 @@
 <div class="flex flex-column gap-2">
   <div class="flex gap-2 column-header">
-    <i class="pi pi-circle-fill align-self-center"></i>
-    <p-inplace [pt]="{ display: 'w-full' }" (onDeactivate)="onClosed()">
+    <i class="pi pi-bars align-self-center"></i>
+    <p-inplace (onDeactivate)="onClosed()">
       <ng-template #display>
         <div class="column-title">{{ column.title }}</div>
       </ng-template>
       <ng-template #content let-closeCallback="closeCallback">
         <input pInputText [(ngModel)]="title" placeholder="Enter name" class="flex-1 m-2"
+               [fluid]="false"
                [pAutoFocus]="true"
-               [style]="{ 'font-size': '1rem', maxWidth: '75%', margin: '0 !important' }"
+               [invalid]="title?.length < 3"
+               [style]="{ 'font-size': '1rem', width: '100%', margin: '0 !important' }"
                (focusout)="closeCallback($event)"
                (keyup)="onKeyUp($event, closeCallback)" />
       </ng-template>
     </p-inplace>
+    <button class="ml-auto delete-button" pButton iconOnly variant="outlined" severity="danger" aria-label="Cancel" (click)="confirmColumnDeletion($event)"><i class="pi pi-trash"></i></button>
   </div>
 
 
@@ -33,3 +36,4 @@
 
 </div>
 
+<p-confirmpopup />

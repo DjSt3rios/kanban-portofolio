@@ -21,6 +21,6 @@ export class CardEntity implements ICard {
   position: number;
 
   @ManyToOne(() => ColumnEntity)
-  @JoinColumn({ name: 'column_id' })
+  @JoinColumn({ name: 'column_id', referencedColumnName: 'id' })
   column: IColumn;
 }

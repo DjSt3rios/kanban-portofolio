@@ -9,7 +9,7 @@ import { AuthModule } from './auth/auth.module';
 import { AlsModule } from './als/als.module';
 import { ColumnModule } from './persistence/column/column.module';
 import { CardModule } from './persistence/card/card.module';
-import { BlCardModule } from './business-logic/bl-card/bl-card.module';
+import { BlModule } from './business-logic/bl.module';
 
 @Module({
   imports: [
@@ -29,7 +29,7 @@ import { BlCardModule } from './business-logic/bl-card/bl-card.module';
     UserModule,
     ColumnModule,
     CardModule,
-    BlCardModule,
+    BlModule,
   ],
   controllers: [],
   providers: [],

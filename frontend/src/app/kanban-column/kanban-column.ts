@@ -2,16 +2,18 @@ import { ChangeDetectorRef, Component, EventEmitter, Input, OnChanges, Output, S
 import { ColumnDto } from '../../services/api-client/models/column-dto';
 import { CardDto } from '../../services/api-client/models/card-dto';
 import { CdkDragDrop, CdkDropList, moveItemInArray, transferArrayItem } from '@angular/cdk/drag-drop';
-import { cardControllerUpdate, columnControllerUpdate } from '../../services/api-client/functions';
-import { HttpClient } from '@angular/common/http';
+import { cardControllerUpdate, columnControllerDelete, columnControllerUpdate } from '../../services/api-client/functions';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { KanbanCard } from '../kanban-card/kanban-card';
 import { InputText } from 'primeng/inputtext';
 import { Inplace } from 'primeng/inplace';
 import { FormsModule } from '@angular/forms';
 import { AutoFocus } from 'primeng/autofocus';
 import { Api } from '../../services/api-client/api';
-import { MessageService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ButtonDirective } from 'primeng/button';
+import { ConfirmPopup } from 'primeng/confirmpopup';
+import { BroadcastSocket } from '../../services/broadcast-socket';
 
 @Component({
   selector: 'app-kanban-column',
@@ -23,7 +25,9 @@ import { ButtonDirective } from 'primeng/button';
     FormsModule,
     AutoFocus,
     ButtonDirective,
+    ConfirmPopup,
   ],
+  providers: [ConfirmationService],
   templateUrl: './kanban-column.html',
   styleUrl: './kanban-column.scss',
 })
@@ -32,7 +36,7 @@ export class KanbanColumn implements OnChanges {
   @Output() reloadBoard = new EventEmitter<void>();
   title: string;
 
-  constructor(private http: HttpClient, private api: Api, private cdr: ChangeDetectorRef, private messageService: MessageService) {
+  constructor(private http: HttpClient, private api: Api, private cdr: ChangeDetectorRef, private messageService: MessageService, private confirmService: ConfirmationService, private wsService: BroadcastSocket) {
   }
 
   ngOnChanges(changes: SimpleChanges<any>) {
@@ -82,7 +86,8 @@ export class KanbanColumn implements OnChanges {
   }
 
   onClosed() {
-    if (this.title === this.column?.title) {
+    if (this.title === this.column?.title || this.title?.length < 3) {
+      this.title = this.column?.title;
       return;
     }
     this.column.title = this.title;
@@ -92,17 +97,7 @@ export class KanbanColumn implements OnChanges {
         ...this.column,
         title: this.title,
       },
-    }).then((res) => {
-      if (!res?.title) {
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Error',
-          detail: 'Failed to change column title, please try again later',
-          key: 'global',
-          closable: false,
-        });
-        return;
-      }
+    }).then(() => {
       this.column.title = this.title;
 
       this.messageService.add({
@@ -113,13 +108,15 @@ export class KanbanColumn implements OnChanges {
         closable: false,
       });
       this.cdr.markForCheck();
-    }).catch((err) => {
+    }).catch((err: HttpErrorResponse) => {
+      const messages = err?.error?.message;
       this.messageService.add({
         severity: 'error',
         summary: 'Error',
-        detail: 'Failed to change column title, please try again later',
+        detail: 'Failed to change column title' + (messages?.length ? ': ' + messages.join() : ''),
         key: 'global',
         closable: false,
+        life: 6000,
       });
       this.reloadBoard.emit();
       console.error(err);
@@ -153,5 +150,43 @@ export class KanbanColumn implements OnChanges {
       return;
     }
     this.column.cards.splice(cardIndex, 1);
+  }
+
+  confirmColumnDeletion(event: Event) {
+    this.confirmService.confirm({
+      target: event.currentTarget as EventTarget,
+      message: 'Do you want to delete this column?',
+      icon: 'pi pi-info-circle',
+      rejectButtonProps: {
+        label: 'Cancel',
+        severity: 'secondary',
+        outlined: true,
+      },
+      acceptButtonProps: {
+        label: 'Delete',
+        severity: 'danger',
+      },
+      accept: () => {
+        this.deleteColumn();
+      },
+    });
+  }
+
+  async deleteColumn() {
+    this.api.invoke(columnControllerDelete, {
+      id: this.column.id,
+    }).then(() => {
+      this.messageService.add({ severity: 'success', summary: 'Deleted', detail: 'Column deleted', life: 3000, key: 'global' });
+      this.wsService.columns.update(currentCols => {
+        return currentCols
+          .filter(col => col.id !== this.column.id)
+          .map(col => col.position > this.column.position
+            ? { ...col, position: col.position - 1 }
+            : col,
+          );
+      });
+    }).catch(() => {
+      this.messageService.add({ severity: 'danger', summary: 'Deletion failed', detail: 'Could not delete column, please try again later', life: 3000, key: 'global' });
+    });
   }
 }
