@@ -2,6 +2,14 @@
 
 ### PS: User interface is very simple for now, requires some more work
 
+## Testing the project
+
+## Option 1 (Simple)
+
+### Visit https://ast-pap-kanban-board.netlify.app
+
+## Option 2 (Running locally)
+
 ### Minimum node version to run the project: v22.22.3 or v24.15.0 or v26.0.0
 
 ### How to run the project
