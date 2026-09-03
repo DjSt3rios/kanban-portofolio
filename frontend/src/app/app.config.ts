@@ -7,17 +7,20 @@ import Aura from '@primeuix/themes/aura';
 import { MessageService } from 'primeng/api';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { authInterceptor } from './auth-interceptor';
+import { provideApiConfiguration } from '../services/api-client/api-configuration';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideHttpClient(withInterceptors([authInterceptor])),
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
+    provideApiConfiguration('https://kanban-portofolio-backend.onrender.com'),
     providePrimeNG({
       theme: {
         preset: Aura,
       },
     }),
     MessageService,
+
   ],
 };
