@@ -1,6 +1,6 @@
 import { OnGatewayConnection, OnGatewayDisconnect, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ICard } from '../../shared/dto/card.dto';
 import { JwtService } from '@nestjs/jwt';
 import { IUser } from '../../shared/dto/user.dto';
@@ -12,6 +12,7 @@ import { IColumn } from '../../shared/dto/column.dto';
 @Injectable()
 @WebSocketGateway()
 export class BoardGateway implements OnGatewayConnection, OnGatewayDisconnect {
+  logger = new Logger('BoardGateway');
   @WebSocketServer()
   server: Server;
 
@@ -28,7 +29,10 @@ export class BoardGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.disconnect(true);
       return;
     }
-    const payload = await this.jwtService.verifyAsync(token);
+    const payload = await this.jwtService.verifyAsync(token).catch((err) => {
+      this.logger.error(err);
+      return null;
+    });
     if (!payload) {
       client.disconnect(true);
       return;
