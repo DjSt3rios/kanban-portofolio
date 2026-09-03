@@ -2,7 +2,8 @@
   <div class="flex flex-column main-panel align-self-center">
     <p-tabs [value]="route.url">
       <p-tablist [ngStyle]="{
-borderRadius: 'var(--p-card-border-radius) var(--p-card-border-radius) 0 0'
+borderRadius: 'var(--p-card-border-radius) var(--p-card-border-radius) 0 0',
+boxShadow: '0 -1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)'
 }">
         @for (tab of tabs; track tab.route) {
           <p-tab [value]="tab.route" class="flex items-center gap-2 text-inherit" [routerLink]="tab.route">
